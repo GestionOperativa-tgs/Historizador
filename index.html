@@ -21,7 +21,10 @@
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;overflow-x:clip}
 button,select,input{font:inherit;color:inherit}
 header{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;padding:10px 16px;background:var(--brand);color:var(--brand-ink)}
-header h1{font-size:20px;margin:0;font-weight:700;letter-spacing:.2px;margin-right:auto}
+header .brand{display:flex;align-items:center;gap:12px;margin-right:auto}
+.logo{background:#fff;border-radius:8px;padding:6px 10px;display:flex;align-items:center;flex:none}
+.logo img{height:30px;width:auto;display:block}
+header h1{font-size:20px;margin:0;font-weight:700;letter-spacing:.2px;line-height:1.2}
 header h1 small{font-weight:500;opacity:.8;font-size:13px;margin-left:8px}
 .hbtn{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:6px;padding:8px 12px;cursor:pointer;min-height:38px}
 .hbtn:hover{background:rgba(255,255,255,.25)}
@@ -41,7 +44,7 @@ header select{background:#fff;color:#16202c;border:0;border-radius:6px;padding:8
 .sel .chip{width:auto;max-width:100%}
 .list{overflow:auto;padding:8px 10px;display:grid;gap:4px;align-content:start}
 .note{font-size:12px;color:var(--muted);padding:4px 2px}
-.main{gap:0}
+.main{gap:0;overflow:auto}
 .bar{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line)}
 .bar .grp{display:flex;gap:4px;align-items:center}
 .bar button,.bar select,.bar input{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:6px 9px;min-height:34px;cursor:pointer}
@@ -77,7 +80,7 @@ tr.hl td{background:var(--hl)}
 </head>
 <body>
 <header>
-  <h1>Historizador GPM <small>tendencias de variables SCADA</small></h1>
+  <div class="brand"><span class="logo"><img src="logo-tgs.png" alt="tgs"></span><h1>Historizador GPM <small>tendencias de variables SCADA</small></h1></div>
   <a class="hbtn" href="https://gestionoperativa-tgs.github.io/Tablero-general/" style="text-decoration:none">← Portal de tableros</a>
   <select id="srcSel" aria-label="Fuente de datos"><option value="">Sin datos cargados</option></select>
   <button class="hbtn" id="btnLoad">Cargar CSV…</button>
@@ -87,7 +90,7 @@ tr.hl td{background:var(--hl)}
 
 <div class="app" id="app">
   <section class="card side">
-    <h2>Tags seleccionados (máx. 8)</h2>
+    <h2>Tags seleccionados (máx. 16)</h2>
     <div class="sel" id="selList"></div>
     <h2>Buscar tag</h2>
     <input type="search" id="q" placeholder="Ej.: T5, vib, NGP, brg 1" aria-label="Buscar tag">
@@ -147,7 +150,8 @@ tr.hl td{background:var(--hl)}
 <script>
 {
 const $=id=>document.getElementById(id);
-const COLORS=['#d62728','#1f4fd1','#2a9d3a','#e08a00','#8e44ad','#0097a7','#c2185b','#6d4c41'];
+const COLORS=['#d62728','#1f4fd1','#2a9d3a','#e08a00','#8e44ad','#0097a7','#c2185b','#6d4c41','#7cb342','#5c6bc0','#f4511e','#00897b','#ad1457','#827717','#3949ab','#546e7a'];
+const MAX_TAGS=COLORS.length;
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const p2=n=>String(n).padStart(2,'0');
 const D=ms=>new Date(ms);
@@ -284,7 +288,7 @@ function renderTags(){
 }
 function toggle(i){
   const k=sel.indexOf(i);
-  if(k>=0)sel.splice(k,1);else{if(sel.length>=8){toast('Máximo 8 tags a la vez');return}sel.push(i)}
+  if(k>=0)sel.splice(k,1);else{if(sel.length>=MAX_TAGS){toast('Máximo '+MAX_TAGS+' tags a la vez');return}sel.push(i)}
   src.sel=sel.slice();save(src);renderTags();refresh();
 }
 $('tagList').onclick=$('selList').onclick=e=>{const b=e.target.closest('.chip');if(b)toggle(+b.dataset.i)};
@@ -335,6 +339,8 @@ function draw(){
   if(!src||!view){plot=null;return}
   if(!sel.length){ctx.fillStyle=css('--muted');ctx.font='16px Inter,system-ui,sans-serif';ctx.textAlign='center';ctx.fillText('Elegí uno o más tags en la lista de la izquierda',W/2,H/2);plot=null;return}
   const mode=$('mode').value,small=W<520;
+  const mh=mode==='stack'&&sel.length>4?(sel.length*90+60)+'px':'';
+  if($('fig').style.minHeight!==mh){$('fig').style.minHeight=mh;return}
   const own=mode==='own'&&sel.length>1;
   const pl=M.l,pr=W-M.r-(own?56:0),pt=M.t,pb=H-M.b,pw=pr-pl;
   plot={pl,pr,pt,pb};
